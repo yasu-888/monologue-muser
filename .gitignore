@@ -1,0 +1,6 @@
+venv/
+.venv/
+*key.json
+.env
+CLAUDE.md
+.claude/
