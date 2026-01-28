@@ -4,3 +4,4 @@ venv/
 .env
 CLAUDE.md
 .claude/
+.DS_Store
