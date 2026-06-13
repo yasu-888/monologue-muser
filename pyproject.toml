@@ -1,0 +1,33 @@
+# 開発ツール専用の定義。デプロイ依存は各サービスの requirements.txt が正本
+# (Cloud Run functions の buildpacks が requirements.txt を要求するため一本化できない)。
+[project]
+name = "monologue-muser-dev"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.8",
+    # テストはサービスの requirements.txt と同じライブラリを import するため、開発側にも入れる
+    "functions-framework>=3.4",
+    "google-cloud-storage>=2.12",
+    "google-cloud-firestore>=2.13",
+    "google-genai>=1.5",
+    "requests>=2.31",
+    "pydantic>=2.5",
+    "Flask>=2.3",
+]
+
+[tool.pytest.ini_options]
+# 2サービスとも main.py を持ちモジュール名が衝突するため、
+# pytest はサービス単位で実行する: uv run pytest upload-monologue / summarize-monologue
+testpaths = ["upload-monologue/tests", "summarize-monologue/tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
