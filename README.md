@@ -12,7 +12,7 @@
 2. 共有メニューから iOS ショートカットを実行。
 3. Notion にメモを文字起こししてまとめられた内容が格納される。
 
-※ ボイスメモは`YYYYMMDD_tilte`という命名規則にして、`tilte` 部分を Notion のページ名にするようにしています。
+※ ボイスメモは`YYYYMMDD_title`という命名規則にして、`title` 部分を Notion のページ名にするようにしています。
 
 ## アーキテクチャ
 
@@ -68,7 +68,7 @@ flowchart TD
     - GCS に アップロードされた音声ファイルを処理して Notion に格納
 
 - Firestore (Google Cloud)
-  - GCS トリガーで Clourd Run functions を実行する際に、Firestore で実行回数を制御しないと、複数回実行されてしまうことがある。
+  - GCS トリガーで Cloud Run functions を実行する際に、Firestore で実行回数を制御しないと、複数回実行されてしまうことがある。
 - Gemini
 
   - Gemini を使用して音声ファイルを文字起こし & 整形
@@ -77,6 +77,19 @@ flowchart TD
 - Notion
 
   - [Notion API](https://developers.notion.com/docs/getting-started) で指定したデータベースにデータを挿入。
+
+## 開発
+
+依存とテストは [uv](https://docs.astral.sh/uv/) で管理しています（デプロイ用の依存の正本は各サービスの `requirements.txt`）。振る舞いの仕様は各サービスの `tests/` が正本です。
+
+```bash
+# 2 つのサービスがどちらも main.py を持つため、テストはサービス単位で実行する
+uv run pytest upload-monologue
+uv run pytest summarize-monologue
+
+# lint
+uv run ruff check .
+```
 
 ## セットアップ方法
 
@@ -93,7 +106,7 @@ git clone https://github.com/yasu-888/monologue-muser.git
   - iOS ショートカットアプリを使用するため
   - 特定の GCS に音声ファイルをアップロードするリクエストを実行できれば、iPhone 以外からでも使用可能。
 
-- GoolgeCloud プロジェクトを作成済み
+- Google Cloud プロジェクトを作成済み
 
   - [こちら](https://cloud.google.com/resource-manager/docs/creating-managing-projects?hl=ja) に沿ってセットアップ
 
@@ -230,7 +243,7 @@ flowchart TD
 4. SecretManager に API キーを登録
 
    1. `gemini-free-api-key` で[Google AI Studio](https://aistudio.google.com/apikey) の API キーを設定。
-   2. `notion-api-key` で Notion インテグレーションの`Internal Integration Secret` を設定。API キーを登
+   2. `notion-api-key` で Notion インテグレーションの`Internal Integration Secret` を設定。
 
 5. Cloud Run functions 2 (summarize-monologue) をデプロイ
 
