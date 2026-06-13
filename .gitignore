@@ -9,3 +9,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
+
+# デプロイ先固定スクリプト（個人プロジェクト固有値を含むため共有しない）
+deploy.sh
+**/deploy.sh
