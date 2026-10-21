@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0  # setup-uv は major の floating tag を公開しないため完全な版で指定する
+        with:
+          enable-cache: true
+          # requirements の同期テストは uv export の出力と完全一致を取るため、手元と同じ uv に揃える
+          version: "0.10.2"
+      # uv.lock と pyproject.toml がずれていれば失敗させる
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      # 2 サービスの main.py はモジュール名が衝突するため、pytest はサービス単位で回す
+      - run: uv run pytest upload-monologue
+      - run: uv run pytest summarize-monologue
