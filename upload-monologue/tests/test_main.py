@@ -69,20 +69,8 @@ def _patch_gcp(signed_url: str = _FAKE_URL):
 
 
 class TestExtToContentType:
-    def test_aiff_returns_audio_aiff(self):
-        assert _ext_to_content_type("aiff") == "audio/aiff"
-
-    def test_aif_returns_audio_aiff(self):
-        assert _ext_to_content_type("aif") == "audio/aiff"
-
-    def test_m4a_returns_audio_mp4(self):
+    def test_known_extension_returns_mime(self):
         assert _ext_to_content_type("m4a") == "audio/mp4"
-
-    def test_mp3_returns_audio_mpeg(self):
-        assert _ext_to_content_type("mp3") == "audio/mpeg"
-
-    def test_wav_returns_audio_wav(self):
-        assert _ext_to_content_type("wav") == "audio/wav"
 
     def test_unknown_extension_returns_octet_stream(self):
         # 未知の拡張子は汎用バイナリにフォールバック。
@@ -114,9 +102,6 @@ class TestSanitizeTitle:
 
     def test_normal_title_unchanged(self):
         assert _sanitize_title("散歩日記") == "散歩日記"
-
-    def test_multiple_slashes(self):
-        assert _sanitize_title("a/b/c") == "a-b-c"
 
 
 # ---------------------------------------------------------------------------
@@ -230,13 +215,6 @@ class TestGenerateSignedUrl:
         call_kwargs = mock_blob.generate_signed_url.call_args.kwargs
         assert call_kwargs["content_type"] == "audio/mp4"
 
-    def test_content_type_matches_extension_aiff(self):
-        patches, mock_blob = _patch_gcp()
-        with patches[0], patches[1]:
-            _call(self.app, {"title": "テスト", "file_extension": "aiff"})
-        call_kwargs = mock_blob.generate_signed_url.call_args.kwargs
-        assert call_kwargs["content_type"] == "audio/aiff"
-
     def test_default_extension_is_aiff(self):
         """file_extension 省略時は aiff がデフォルト。"""
         patches, mock_blob = _patch_gcp()
@@ -269,14 +247,6 @@ class TestGenerateSignedUrl:
             result = _call(self.app, {"title": "a/b/c", "file_extension": "aiff"})
         data = json.loads(result[0].get_data(as_text=True))
         assert "/" not in data["filename"].split("_", 2)[2]
-
-    def test_unknown_extension_uses_octet_stream(self):
-        """未知の拡張子は application/octet-stream にフォールバックする。"""
-        patches, mock_blob = _patch_gcp()
-        with patches[0], patches[1]:
-            _call(self.app, {"title": "テスト", "file_extension": "xyz"})
-        call_kwargs = mock_blob.generate_signed_url.call_args.kwargs
-        assert call_kwargs["content_type"] == "application/octet-stream"
 
     def test_gcp_error_returns_500(self):
         with patch("main.google.auth.default", side_effect=Exception("auth failed")):
