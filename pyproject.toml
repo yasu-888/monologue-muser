@@ -39,6 +39,8 @@ testpaths = ["upload-monologue/tests", "summarize-monologue/tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# private/ は作業場（非公開 repo）にだけある個人用の置き場で、試作スクリプトを含むため lint しない
+extend-exclude = ["private"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
