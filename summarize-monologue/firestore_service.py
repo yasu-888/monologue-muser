@@ -1,10 +1,8 @@
 import hashlib
-import os
 from datetime import UTC, datetime, timedelta
 
+import config
 from google.cloud import firestore
-
-COLLECTION_NAME = os.environ.get('COLLECTION_NAME', 'firestore_collection_name')
 
 # firestore.Client は import 時ではなく初回利用時に生成する。
 # 認証なしのテスト環境で import できること、および Cloud Run のコールドスタートで
@@ -59,14 +57,14 @@ def try_start_processing(event_id: str, bucket_name: str, file_name: str) -> boo
     """イベント処理の開始を試行する。重複実行なら False。"""
     try:
         db = _get_db()
-        doc_ref = db.collection(COLLECTION_NAME).document(event_id)
+        doc_ref = db.collection(config.collection_name()).document(event_id)
         transaction = db.transaction()
 
         return _try_start_processing_transaction(transaction, doc_ref, bucket_name, file_name)
 
     except Exception as e:
         print(f"処理開始試行エラー: {e}")
-        print(f"コレクション名: {COLLECTION_NAME}, イベントID: {event_id}")
+        print(f"コレクション名: {config.collection_name()}, イベントID: {event_id}")
         return False
 
 
@@ -74,7 +72,7 @@ def mark_processing_completed(event_id: str, bucket_name: str, file_name: str) -
     """イベント処理の完了を記録し、TTL 用の有効期限を設定する。"""
     try:
         db = _get_db()
-        doc_ref = db.collection(COLLECTION_NAME).document(event_id)
+        doc_ref = db.collection(config.collection_name()).document(event_id)
 
         # Pub/Sub の最大メッセージ保持期間（デフォルト7日）を考慮し、
         # 少し余裕を持たせて10日後に設定。
@@ -88,12 +86,15 @@ def mark_processing_completed(event_id: str, bucket_name: str, file_name: str) -
             'status': 'completed',
             'expire_at': expire_at_time,  # TTL (Time-to-Live) ポリシー用のフィールド
         })
-        print(f"処理完了を記録: コレクション='{COLLECTION_NAME}', ドキュメントID='{event_id}'")
+        print(
+            f"処理完了を記録: コレクション='{config.collection_name()}', "
+            f"ドキュメントID='{event_id}'"
+        )
         print(f"ドキュメントは {expire_at_time.isoformat()} ごろに自動削除されます。")
         return True
     except Exception as e:
         print(f"処理完了記録エラー: {e}")
-        print(f"コレクション名: {COLLECTION_NAME}, イベントID: {event_id}")
+        print(f"コレクション名: {config.collection_name()}, イベントID: {event_id}")
         return False
 
 
@@ -107,11 +108,11 @@ def mark_processing_failed(event_id: str, bucket_name: str, file_name: str) -> b
     """
     try:
         db = _get_db()
-        doc_ref = db.collection(COLLECTION_NAME).document(event_id)
+        doc_ref = db.collection(config.collection_name()).document(event_id)
         doc_ref.delete()
         print(f"処理失敗のため重複防止ドキュメントを削除（再試行可能化）: イベントID={event_id}")
         return True
     except Exception as e:
         print(f"処理失敗マークエラー: {e}")
-        print(f"コレクション名: {COLLECTION_NAME}, イベントID: {event_id}")
+        print(f"コレクション名: {config.collection_name()}, イベントID: {event_id}")
         return False

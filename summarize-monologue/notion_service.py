@@ -1,9 +1,7 @@
 import os
 
+import config
 import requests
-
-NOTION_API_KEY = os.environ.get('NOTION_API_KEY', 'your_notion_api_key')
-NOTION_DATABASE_ID = os.environ.get('NOTION_DATABASE_ID', 'your_notion_database_id')
 
 # Notion API は rich_text の 1 要素あたり content 2000 文字までという制限がある。
 # 超過すると 400 (validation_error) になるため、長い行は複数の rich_text 要素へ分割する。
@@ -79,7 +77,7 @@ def send_to_notion(file_name, markdown_content, next_action_markdown, tags):
         notion_endpoint = "https://api.notion.com/v1/pages"
 
         headers = {
-            "Authorization": f"Bearer {NOTION_API_KEY}",
+            "Authorization": f"Bearer {config.notion_api_key()}",
             "Content-Type": "application/json",
             "Notion-Version": "2022-06-28",
         }
@@ -87,7 +85,7 @@ def send_to_notion(file_name, markdown_content, next_action_markdown, tags):
         content_blocks = convert_markdown_to_notion_blocks(markdown_content)
 
         data = {
-            "parent": {"database_id": NOTION_DATABASE_ID},
+            "parent": {"database_id": config.notion_database_id()},
             "properties": {
                 "Title": {"title": [{"text": {"content": title}}]},
                 "Tags": {"multi_select": [{"name": tag} for tag in tags]},

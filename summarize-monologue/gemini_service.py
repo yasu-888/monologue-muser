@@ -1,12 +1,9 @@
 import json
-import os
 import textwrap
 
+import config
 from google import genai
 from schema import SummaryResponse, TranscriptionResponse, error_summary
-
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'gemini_api_key')
-GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
 
 # genai.Client は import 時ではなく初回利用時に生成する。
 # 認証なしのテスト環境で import できること、Cloud Run コールドスタートでの遅延初期化が目的。
@@ -16,7 +13,7 @@ _genai_client: genai.Client | None = None
 def _get_client() -> genai.Client:
     global _genai_client
     if _genai_client is None:
-        _genai_client = genai.Client(api_key=GEMINI_API_KEY)
+        _genai_client = genai.Client(api_key=config.gemini_api_key())
     return _genai_client
 
 
@@ -92,7 +89,7 @@ def _transcribe(file_path: str) -> str:
     audio_file = client.files.upload(file=file_path)
 
     transcription_response = client.models.generate_content(
-        model=GEMINI_MODEL,
+        model=config.gemini_model(),
         contents=[_TRANSCRIPTION_PROMPT, audio_file],
         config={
             'response_mime_type': 'application/json',
@@ -111,7 +108,7 @@ def _summarize(transcription: str) -> dict:
     """文字起こしテキストを整形・要約し、SummaryResponse 相当の dict を返す。"""
     client = _get_client()
     summary_response = client.models.generate_content(
-        model=GEMINI_MODEL,
+        model=config.gemini_model(),
         contents=_build_summary_prompt(transcription),
         config={
             'response_mime_type': 'application/json',

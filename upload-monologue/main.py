@@ -8,8 +8,11 @@ import google.auth.transport.requests
 from flask import jsonify
 from google.cloud import storage
 
-# デプロイ先 GCS バケット名。環境変数で注入する
-BUCKET_NAME = os.environ.get("BUCKET_NAME", "gcs_bucket_name")
+
+# デプロイ先 GCS バケット名。環境変数で注入する。
+# 呼び出し時に読むのは import 時に固定すると monkeypatch.setenv が効かないため。
+def _bucket_name() -> str:
+    return os.environ.get("BUCKET_NAME", "gcs_bucket_name")
 
 # 拡張子 → MIME タイプの対応表。
 # GCS 署名付き PUT URL は content_type を署名対象に含めるため、
@@ -102,7 +105,7 @@ def generate_signed_url(request):
         credentials, _ = google.auth.default()
         credentials.refresh(google.auth.transport.requests.Request())
         storage_client = storage.Client()
-        bucket = storage_client.bucket(BUCKET_NAME)
+        bucket = storage_client.bucket(_bucket_name())
         blob = bucket.blob(filename)
 
         # 署名付き URL の有効期限は 15 分

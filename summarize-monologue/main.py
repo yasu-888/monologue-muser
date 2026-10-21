@@ -11,8 +11,6 @@ from firestore_service import (
 from gemini_service import transcribe_and_summarize
 from notion_service import send_to_notion
 
-BUCKET_NAME = os.environ.get('BUCKET_NAME', 'gcs_bucket_name')
-
 
 def _local_tmp_path(file_name: str) -> str:
     """GCS オブジェクト名から /tmp 内の安全なローカルパスを作る。
