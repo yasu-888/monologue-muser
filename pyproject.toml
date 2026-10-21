@@ -19,7 +19,7 @@ summarize-monologue = [
     "functions-framework>=3.10",
     "google-cloud-storage>=3",
     "google-cloud-firestore>=2.13",
-    "google-genai>=1.5,<2",
+    "google-genai>=2.8",
     "requests>=2.33",
     "pydantic>=2.5",
 ]
