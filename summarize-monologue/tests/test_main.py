@@ -1,6 +1,8 @@
 import types
 
+import config
 import main
+import pytest
 
 
 def _cloud_event(bucket="bucket", name="20240101_abcd1234_メモ.m4a"):
@@ -80,3 +82,15 @@ class TestSummarizeMonologue:
         monkeypatch.setattr(main.os, "remove", lambda p: removed.setdefault("path", p))
         main.summarize_monologue(_cloud_event(name="dir/x.m4a"))
         assert removed["path"] == "/tmp/x.m4a"
+
+
+class TestRequiredEnv:
+    def test_必須envが欠けていると例外になり_try_start_processingを呼ばない(self, monkeypatch):
+        _patch_pipeline(monkeypatch)
+        monkeypatch.delenv("NOTION_API_KEY")
+        called = {}
+        monkeypatch.setattr(main, "try_start_processing", lambda *a: called.setdefault("x", True))
+
+        with pytest.raises(config.MissingEnvError, match="NOTION_API_KEY"):
+            main.summarize_monologue(_cloud_event())
+        assert "x" not in called

@@ -2,6 +2,7 @@ import os
 
 import functions_framework
 from cloud_storage_service import delete_file_from_gcs, download_file_from_gcs
+from config import require_all
 from firestore_service import (
     generate_event_id,
     mark_processing_completed,
@@ -24,6 +25,9 @@ def _local_tmp_path(file_name: str) -> str:
 @functions_framework.cloud_event
 def summarize_monologue(cloud_event):
     """GCS へのファイルアップロードをトリガーに音声ファイルを処理する関数。"""
+    # 必須 env の欠落は例外で止め、Cloud Run のエラーログに出す。
+    require_all()
+
     data = cloud_event.data
     bucket_name = data["bucket"]
     file_name = data["name"]

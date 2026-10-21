@@ -10,9 +10,13 @@ from google.cloud import storage
 
 
 # デプロイ先 GCS バケット名。環境変数で注入する。
+# 既定値を持つと未設定でもダミー名で黙って動くため、未設定・空はエラーにする。
 # 呼び出し時に読むのは import 時に固定すると monkeypatch.setenv が効かないため。
 def _bucket_name() -> str:
-    return os.environ.get("BUCKET_NAME", "gcs_bucket_name")
+    value = os.environ.get("BUCKET_NAME", "")
+    if not value:
+        raise RuntimeError("必須の環境変数 BUCKET_NAME が未設定です")
+    return value
 
 # 拡張子 → MIME タイプの対応表。
 # GCS 署名付き PUT URL は content_type を署名対象に含めるため、

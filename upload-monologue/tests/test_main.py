@@ -7,8 +7,10 @@ GCP 認証 (google.auth.default, storage.Client, blob.generate_signed_url) は
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
 from flask import Flask  # third-party
 from main import (  # local
+    _bucket_name,
     _ext_to_content_type,
     _sanitize_extension,
     _sanitize_title,
@@ -146,6 +148,10 @@ class TestSanitizeExtension:
 
 
 class TestGenerateSignedUrl:
+    @pytest.fixture(autouse=True)
+    def _bucket_env(self, monkeypatch):
+        monkeypatch.setenv("BUCKET_NAME", "test-bucket")
+
     def setup_method(self):
         self.app = _make_app()
 
@@ -276,4 +282,30 @@ class TestGenerateSignedUrl:
         with patch("main.google.auth.default", side_effect=Exception("auth failed")):
             result = _call(self.app, {"title": "テスト", "file_extension": "aiff"})
         _, status, _ = result
+        assert status == 500
+
+
+# ---------------------------------------------------------------------------
+# BUCKET_NAME 環境変数
+# ---------------------------------------------------------------------------
+
+
+class TestBucketNameEnv:
+    def test_設定済みならその値を返す(self, monkeypatch):
+        monkeypatch.setenv("BUCKET_NAME", "my-bucket")
+        assert _bucket_name() == "my-bucket"
+
+    def test_未設定ならエラーになりレスポンスの500にBUCKET_NAMEが含まれる(self, monkeypatch):
+        monkeypatch.delenv("BUCKET_NAME", raising=False)
+        patches, _ = _patch_gcp()
+        with patches[0], patches[1]:
+            body, status, _ = _call(_make_app(), {"title": "テスト", "file_extension": "aiff"})
+        assert status == 500
+        assert "BUCKET_NAME" in body.get_json()["error"]
+
+    def test_空文字なら未設定として500になる(self, monkeypatch):
+        monkeypatch.setenv("BUCKET_NAME", "")
+        patches, _ = _patch_gcp()
+        with patches[0], patches[1]:
+            _, status, _ = _call(_make_app(), {"title": "テスト", "file_extension": "aiff"})
         assert status == 500
