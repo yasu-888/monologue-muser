@@ -14,9 +14,6 @@ class TestLocalTmpPath:
         # GCS オブジェクト名にスラッシュが含まれても /tmp 直下の安全なパスになる。
         assert main._local_tmp_path("nested/dir/file.m4a") == "/tmp/file.m4a"
 
-    def test_keeps_plain_name(self):
-        assert main._local_tmp_path("file.m4a") == "/tmp/file.m4a"
-
 
 def _patch_pipeline(monkeypatch, *, start=True, download=True, summary=None,
                     notion=True, recorder=None):

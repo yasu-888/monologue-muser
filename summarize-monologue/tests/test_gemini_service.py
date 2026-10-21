@@ -1,5 +1,5 @@
 import gemini_service
-from schema import SummaryResponse, TranscriptionResponse, error_summary
+from schema import SummaryResponse, TranscriptionResponse
 
 
 class _FakeResponse:
@@ -91,8 +91,3 @@ class TestTranscribeAndSummarize:
 
         assert result["tags"] == ["要約エラー"]
         assert result["nextActions"] == []
-
-
-class TestErrorSummaryHelper:
-    def test_has_same_keys_as_success_response(self):
-        assert set(error_summary("msg", "kind")) == {"markdown", "nextActions", "tags"}

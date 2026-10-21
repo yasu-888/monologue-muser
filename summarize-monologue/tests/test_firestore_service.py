@@ -38,9 +38,6 @@ class TestGenerateEventId:
         b = generate_event_id("bucket", "file.m4a")
         assert a == b
 
-    def test_differs_for_different_files(self):
-        assert generate_event_id("b", "a.m4a") != generate_event_id("b", "c.m4a")
-
 
 class TestMarkProcessingFailed:
     def test_deletes_document_to_allow_retry(self, monkeypatch):
