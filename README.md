@@ -280,3 +280,9 @@ flowchart TD
    --service-account=[サービスアカウント名]@[プロジェクト ID].iam.gserviceaccount.com \
    --location=asia-northeast1
    ```
+
+## 開発（エージェント向けファイル）
+
+- `AGENTS.md`: エージェント向けの作業ルール
+- `.agents/skills/`: repo-local skill の正本
+- `.claude/skills`・`.codex/skills`: `.agents/skills` を指す symlink（Claude Code / Codex から参照）

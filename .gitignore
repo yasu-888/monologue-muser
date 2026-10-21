@@ -3,7 +3,8 @@ venv/
 *key.json
 .env
 CLAUDE.md
-.claude/
+.claude/*
+!.claude/skills
 .DS_Store
 __pycache__/
 *.pyc
